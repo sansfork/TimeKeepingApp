@@ -53,7 +53,7 @@ fun MyApp() {
                 {navController.navigate("choicescreen")}
             )
         }
-        composable("choicescreen") {
+        composable("personalscreen") {
             PersonalScreen(
                 {navController.navigate("choicescreen")}
             )
