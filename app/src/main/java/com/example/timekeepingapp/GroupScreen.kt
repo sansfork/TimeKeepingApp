@@ -1,11 +1,17 @@
 package com.example.timekeepingapp
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,13 +24,25 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun GroupScreen(navigationToChoiceScreen:() -> Unit) {
 
+    // Title of Page
+    Box(modifier = Modifier.fillMaxWidth().padding(vertical = 42.dp)
+        .wrapContentWidth(align = Alignment.CenterHorizontally)) {
+        Text("Welcome to Group Mode", fontSize = 18.sp)
+    }
+    // Column of "profiles"
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier.fillMaxSize()
+            .padding(horizontal = 16.dp, vertical = 70.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Welcome to Group Mode", fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(16.dp))
+        // Space for adding "profiles" (Boxes?)
+
+    }
+
+    // 'Back' button
+    Box(modifier = Modifier.fillMaxHeight().padding(8.dp)
+        .wrapContentHeight(align = Alignment.Bottom)) {
         Button(onClick = {
             navigationToChoiceScreen()
         }) {
