@@ -44,23 +44,6 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
 
-    // Stopwatch LaunchedEffect(s)
-    LaunchedEffect(viewStopwatch.isRunning.value) {
-        while (viewStopwatch.isRunning.value) {
-            delay(15)
-            viewStopwatch.time.value += 1
-        }
-    }
-
-    // Timer LaunchedEffect(s)
-    LaunchedEffect(viewTimer.isRunning.value, viewTimer.time.value) {
-        while (viewTimer.isRunning.value && viewTimer.time.value != 0L) {
-            delay(15*60)
-            viewTimer.time.value -= 1
-        }
-        viewTimer.isRunning.value = false
-    }
-
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Center,
