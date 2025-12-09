@@ -4,10 +4,8 @@ import android.text.format.DateUtils.formatElapsedTime
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,10 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-
-
 @Composable
-fun StopwatchText(time: Long) {
+fun TimerText(time: Long) {
     Text(
         text = formatElapsedTime(time),
         fontSize = 64.sp,
@@ -35,42 +31,35 @@ fun StopwatchText(time: Long) {
     )
 }
 
+
 @Composable
-fun StartStopButton(isRunning: Boolean, onStartStopClick: () -> Unit) {
-    val label = if (isRunning) "Stop" else "Start"
-    Button(onClick = onStartStopClick) {
-        Text(label)
+fun TimerScreen() {
+    var time by remember { mutableStateOf(0L) }
+    var isRunning by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isRunning) {
+        while (isRunning) {
+            delay(15)
+            time += 1
+        }
     }
-}
-
-@Composable
-fun ResetButton(onResetClick: () -> Unit) {
-    Button(onResetClick) {
-        Text("Reset")
-    }
-}
-
-@Composable
-fun StopwatchScreen(viewModel: StopwatchViewModel) {
-
-
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        StopwatchText(time = viewModel.time.value)
+        TimerText(time = time)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StartStopButton(isRunning = viewModel.isRunning.value) {
-                viewModel.isRunning.value = !viewModel.isRunning.value
+            StartStopButton(isRunning = isRunning) {
+                isRunning = !isRunning
             }
             ResetButton(onResetClick = {
-                viewModel.isRunning.value = false
-                viewModel.time.value = 0L
+                isRunning = false
+                time = 0L
             })
         }
     }
@@ -78,6 +67,6 @@ fun StopwatchScreen(viewModel: StopwatchViewModel) {
 
 @Preview(showBackground = true)
 @Composable
-fun StopwatchPreview() {
-    StopwatchScreen(StopwatchViewModel())
+fun TimerPreview() {
+    TimerScreen()
 }

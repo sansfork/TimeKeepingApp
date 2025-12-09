@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -22,9 +23,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
+            val viewStopwatch: StopwatchViewModel by viewModels()
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
+                        viewStopwatch,
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -34,12 +37,12 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ScreenDisplay(modifier: Modifier) {
-    MyApp()
+fun ScreenDisplay(viewStopwatch: StopwatchViewModel, modifier: Modifier) {
+    MyApp(viewStopwatch)
 }
 
 @Composable
-fun MyApp() {
+fun MyApp(viewStopwatch: StopwatchViewModel) {
     val navController = rememberNavController()
     NavHost(navController, "choicescreen") {
         composable("choicescreen") {
@@ -55,7 +58,8 @@ fun MyApp() {
         }
         composable("personalscreen") {
             PersonalScreen(
-                {navController.navigate("choicescreen")}
+                {navController.navigate("choicescreen") },
+                viewStopwatch
             )
         }
     }

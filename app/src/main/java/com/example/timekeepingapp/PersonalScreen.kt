@@ -23,6 +23,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,11 +34,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.delay
 
 @Composable
-fun PersonalScreen(navigationToChoiceScreen:() -> Unit) {
+fun PersonalScreen(navigationToChoiceScreen:() -> Unit, viewStopwatch: StopwatchViewModel) {
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+
+    // Stopwatch LaunchedEffect(s)
+    LaunchedEffect(viewStopwatch.isRunning.value) {
+        while (viewStopwatch.isRunning.value) {
+            delay(15)
+            viewStopwatch.time.value += 1
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -54,10 +66,10 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit) {
         // ViewPager2 (Use separate files for each page) (For now, Composables in same place)
         HorizontalPager(state = pagerState) {
             page -> when (page) {
-            // Not Implemented
+            // PURELY FOR EXPERIMENTATION (RE-WRITE ASAP)
             0 -> TimerScreen()
             // EXPERIMENTAL (Start/Stop works)
-            1 -> StopwatchScreen()
+            1 -> StopwatchScreen(viewStopwatch)
             // Not Implemented
             2 -> IntervalScreen()
             }
@@ -65,10 +77,6 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit) {
     }
 }
 // HorizontalPager pages (to be moved to separate files)
-@Composable
-fun TimerScreen() {
-    Text("Timer", modifier = Modifier.fillMaxSize())
-}
 
 @Composable
 fun IntervalScreen() {
@@ -78,5 +86,5 @@ fun IntervalScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PersonalPreview() {
-    PersonalScreen({})
+    PersonalScreen({}, viewStopwatch = StopwatchViewModel())
 }
