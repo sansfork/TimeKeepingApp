@@ -23,37 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-
-
-@Composable
-fun StopwatchText(time: Long) {
-    Text(
-        text = formatElapsedTime(time),
-        fontSize = 64.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 16.dp)
-    )
-}
-
-@Composable
-fun StartStopButton(isRunning: Boolean, onStartStopClick: () -> Unit) {
-    val label = if (isRunning) "Stop" else "Start"
-    Button(onClick = onStartStopClick) {
-        Text(label)
-    }
-}
-
-@Composable
-fun ResetButton(onResetClick: () -> Unit) {
-    Button(onResetClick) {
-        Text("Reset")
-    }
-}
-
 @Composable
 fun StopwatchScreen(viewModel: StopwatchViewModel) {
-
-
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

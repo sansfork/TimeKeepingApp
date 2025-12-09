@@ -39,7 +39,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun PersonalScreen(navigationToChoiceScreen:() -> Unit, viewStopwatch: StopwatchViewModel) {
+fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
+                   viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel) {
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
 
@@ -49,6 +50,15 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit, viewStopwatch: Stopwatch
             delay(15)
             viewStopwatch.time.value += 1
         }
+    }
+
+    // Timer LaunchedEffect(s)
+    LaunchedEffect(viewTimer.isRunning.value, viewTimer.time.value) {
+        while (viewTimer.isRunning.value && viewTimer.time.value != 0L) {
+            delay(15*60)
+            viewTimer.time.value -= 1
+        }
+        viewTimer.isRunning.value = false
     }
 
     Column(
@@ -66,8 +76,8 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit, viewStopwatch: Stopwatch
         // ViewPager2 (Use separate files for each page) (For now, Composables in same place)
         HorizontalPager(state = pagerState) {
             page -> when (page) {
-            // PURELY FOR EXPERIMENTATION (RE-WRITE ASAP)
-            0 -> TimerScreen()
+            // EXPERIMENTAL (Works well)
+            0 -> TimerScreen(viewTimer)
             // EXPERIMENTAL (Start/Stop works)
             1 -> StopwatchScreen(viewStopwatch)
             // Not Implemented
@@ -86,5 +96,7 @@ fun IntervalScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PersonalPreview() {
-    PersonalScreen({}, viewStopwatch = StopwatchViewModel())
+    PersonalScreen({},
+        viewStopwatch = StopwatchViewModel(),
+        viewTimer = TimerViewModel())
 }

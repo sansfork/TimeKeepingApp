@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.timekeepingapp.ui.theme.TimeKeepingAppTheme
+import java.util.Timer
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,11 +25,13 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val viewStopwatch: StopwatchViewModel by viewModels()
+            val viewTimer: TimerViewModel by viewModels()
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
+                        modifier = Modifier.padding(innerPadding),
                         viewStopwatch,
-                        modifier = Modifier.padding(innerPadding)
+                        viewTimer,
                     )
                 }
             }
@@ -37,12 +40,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ScreenDisplay(viewStopwatch: StopwatchViewModel, modifier: Modifier) {
-    MyApp(viewStopwatch)
+fun ScreenDisplay(modifier: Modifier,
+                  viewStopwatch: StopwatchViewModel,
+                  viewTimer: TimerViewModel) {
+    MyApp(viewStopwatch, viewTimer)
 }
 
 @Composable
-fun MyApp(viewStopwatch: StopwatchViewModel) {
+fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel) {
     val navController = rememberNavController()
     NavHost(navController, "choicescreen") {
         composable("choicescreen") {
@@ -59,7 +64,8 @@ fun MyApp(viewStopwatch: StopwatchViewModel) {
         composable("personalscreen") {
             PersonalScreen(
                 {navController.navigate("choicescreen") },
-                viewStopwatch
+                viewStopwatch,
+                viewTimer
             )
         }
     }

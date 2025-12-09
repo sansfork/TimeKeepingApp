@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,44 +26,24 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun TimerText(time: Long) {
-    Text(
-        text = formatElapsedTime(time),
-        fontSize = 64.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 16.dp)
-    )
-}
-
-
-@Composable
-fun TimerScreen() {
-    var time by remember { mutableStateOf(0L) }
-    var isRunning by remember { mutableStateOf(false) }
-
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
-            delay(15)
-            time += 1
-        }
-    }
+fun TimerScreen(viewModel: TimerViewModel) {
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
-        TimerText(time = time)
+        TimerText(time = viewModel.time.value)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            StartStopButton(isRunning = isRunning) {
-                isRunning = !isRunning
+            StartStopButton(isRunning = viewModel.isRunning.value) {
+                viewModel.isRunning.value = !viewModel.isRunning.value
             }
             ResetButton(onResetClick = {
-                isRunning = false
-                time = 0L
+                viewModel.isRunning.value = false
+                viewModel.time.value = 30L
             })
         }
     }
@@ -68,5 +52,5 @@ fun TimerScreen() {
 @Preview(showBackground = true)
 @Composable
 fun TimerPreview() {
-    TimerScreen()
+    TimerScreen(TimerViewModel())
 }
