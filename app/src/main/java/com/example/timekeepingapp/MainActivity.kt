@@ -78,7 +78,8 @@ fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel) {
         }
         composable("groupscreen") {
             GroupScreen(
-                {navController.navigate("choicescreen")}
+                {navController.navigate("choicescreen")},
+                {navController.navigate("profilescreen")}
             )
         }
         composable("personalscreen") {
@@ -86,6 +87,11 @@ fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel) {
                 {navController.navigate("choicescreen") },
                 viewStopwatch,
                 viewTimer
+            )
+        }
+        composable("profilescreen") {
+            ProfileScreen(
+                {navController.navigate("groupscreen")}
             )
         }
     }

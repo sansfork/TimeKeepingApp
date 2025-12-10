@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -52,8 +53,10 @@ data class GroupItem(
     var isEditing: Boolean = false,
 )
 
+private val _profileLimit = 6
+
 @Composable
-fun GroupScreen(navigationToChoiceScreen:() -> Unit) {
+fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:() -> Unit) {
 
     val activityContext = LocalContext.current
 
@@ -63,23 +66,26 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit) {
     var itemName by remember { mutableStateOf("John Doe") }
     var itemActivity by remember { mutableStateOf("None") }
 
-    // Title of Page
-    Box(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 42.dp)
-        .wrapContentWidth(align = Alignment.CenterHorizontally)) {
-        Text("Welcome to Group Mode", fontSize = 18.sp)
-    }
+
     // Column of "profiles"
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp, vertical = 70.dp),
+            .fillMaxHeight()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // Title of Page
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 28.dp)
+            .wrapContentWidth(align = Alignment.CenterHorizontally)) {
+            Text("Welcome to Group Mode", fontSize = 18.sp)
+        }
         // Space for adding "profiles" (Lazy Column)
         LazyColumn(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
         ) {
             items(gItems){
                 item ->
@@ -94,15 +100,47 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit) {
                         }
                     })
                 }else{
-                    GroupListItem(item = item,
+                    GroupListItem(
+                        item = item,
                         onEditClick = {
                             // Finding out which item we're editing and changing 'isEditing' to True
-                            gItems = gItems.map { it.copy(isEditing = it.id==item.id) }
+                            gItems = gItems.map { it.copy(isEditing = it.id == item.id) }
                         },
-                        onDeleteClick = {gItems = gItems-item})
+                        onDeleteClick = { gItems = gItems - item },
+                        navigationToProfileScreen = navigationToProfileScreen
+                    )
                 }
             }
         }
+        // Back Button & Add "Profile" Button
+        Row(modifier = Modifier.fillMaxWidth(),
+            Arrangement.SpaceBetween) {
+            // 'Back' button
+            Button(onClick = {
+                navigationToChoiceScreen()
+            }) {
+                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+            }
+            // Add "Profile" Button
+            Button(
+                onClick = {
+                    // If number of items in LazyColumn
+                    // reaches limit (5 for testing),
+                    // generate pop-up message
+                    if (gItems.size+1 > _profileLimit) {
+                        Toast.makeText(activityContext,
+                            "Item Limit Reached (Max. $_profileLimit)",
+                            Toast.LENGTH_LONG).show()
+                    }else {
+                        //Display AlertDialog
+                        showDialog = true
+                    }
+                }
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            }
+        }
+
         if (showDialog) {
             AlertDialog(onDismissRequest = {showDialog = false},
                 confirmButton = {
@@ -154,43 +192,6 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit) {
             )
         }
     }
-
-    //Add item Button
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-        .wrapContentSize(align = Alignment.BottomEnd)) {
-        Button(
-            onClick = {
-                // If number of items in LazyColumn
-                // reaches limit (5 for testing),
-                // generate pop-up message
-                if (gItems.size+1 > 5) {
-                        Toast.makeText(activityContext,
-                            "Item Limit Reached (Max. 5)",
-                            Toast.LENGTH_LONG).show()
-                }else {
-                    //Display AlertDialog
-                    showDialog = true
-                }
-            }
-        ) {
-            Icon(imageVector = Icons.Default.Add, contentDescription = null)
-        }
-    }
-
-
-    // 'Back' button
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)
-        .wrapContentSize(align = Alignment.BottomStart)) {
-        Button(onClick = {
-            navigationToChoiceScreen()
-        }) {
-            Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
-        }
-    }
 }
 
 @Composable
@@ -201,7 +202,7 @@ fun GroupItemEditor(item: GroupItem, onEditComplete: (String, String) -> Unit) {
 
     Row(modifier = Modifier
         .fillMaxWidth()
-        .background(Color.White)
+        .background(Color.LightGray)
         .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceEvenly)
     {
@@ -237,6 +238,7 @@ fun GroupListItem(
     item: GroupItem,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    navigationToProfileScreen: () -> Unit
 ){
     Row(
         modifier = Modifier
@@ -246,7 +248,8 @@ fun GroupListItem(
                 border = BorderStroke(width = 2.dp, color = Color(0XFF018786)),
                 shape = RoundedCornerShape(0),
             ),
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier
             .weight(1f)
@@ -262,15 +265,17 @@ fun GroupListItem(
         // Use only one Icon (Icons.Default.KeyboardArrowRight) <- Deprecated
         // Alternative: Icons.AutoMirrored.Filled.KeyboardArrowRight
         Column(modifier = Modifier.padding(8.dp)) {
-            IconButton(onClick = {  }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null)
+            IconButton(onClick = navigationToProfileScreen) {
+                Icon(imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = "Go to profile page",
+                    tint = Color(0xFF5D28A8))
             }
-            IconButton(onClick = onEditClick) {
-                Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-            }
-            IconButton(onClick = onDeleteClick) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-            }
+            //IconButton(onClick = onEditClick) {
+            //    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
+            //}
+            //IconButton(onClick = onDeleteClick) {
+            //    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+            //}
         }
     }
 }
@@ -278,5 +283,5 @@ fun GroupListItem(
 @Preview(showBackground = true)
 @Composable
 fun GroupPreview() {
-    GroupScreen({})
+    GroupScreen({}, {})
 }
