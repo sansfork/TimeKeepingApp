@@ -21,6 +21,17 @@ fun TimerText(time: Long) {
 }
 
 @Composable
+fun IntervalText(workTime: Long, breakTime: Long, isWorking: Boolean) {
+    val time = if (isWorking) workTime else breakTime
+    Text(
+        text = formatElapsedTime(time),
+        fontSize = 64.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(vertical = 16.dp)
+    )
+}
+
+@Composable
 fun StopwatchText(time: Long) {
     Text(
         text = formatElapsedTime(time),

@@ -121,7 +121,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
             }) {
                 Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
             }
-            // Add "Profile" Button
+            // 'Add Profile' Button
             Button(
                 onClick = {
                     // If number of items in LazyColumn

@@ -40,7 +40,8 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
-                   viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel) {
+                   viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel,
+                   viewInterval: IntervalViewModel) {
 
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
 
@@ -64,7 +65,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
             // EXPERIMENTAL (Start/Stop works)
             1 -> StopwatchScreen(viewStopwatch)
             // Not Implemented
-            2 -> IntervalScreen()
+            2 -> IntervalScreen(viewInterval)
             }
         }
     }
@@ -73,7 +74,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
 
 @Composable
 fun IntervalScreen() {
-    Text("Interval Timer", modifier = Modifier.fillMaxSize())
+    Text("No Interval Timer Yet", modifier = Modifier.fillMaxSize())
 }
 
 @Preview(showBackground = true)
@@ -81,5 +82,7 @@ fun IntervalScreen() {
 fun PersonalPreview() {
     PersonalScreen({},
         viewStopwatch = StopwatchViewModel(),
-        viewTimer = TimerViewModel())
+        viewTimer = TimerViewModel(),
+        viewInterval = IntervalViewModel()
+        )
 }

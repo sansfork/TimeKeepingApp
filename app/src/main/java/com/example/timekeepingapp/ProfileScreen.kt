@@ -37,8 +37,9 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
         Spacer(modifier = Modifier.height(16.dp))
         Button(onClick = {
             Toast.makeText(activityContext,
-                "Oopsies! You can't delete profiles yet! " +
-                        "(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
+                "You can't delete profiles yet",
+                //"Whoopsies! You can't delete profiles yet! " +
+                //"(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
                 Toast.LENGTH_LONG).show()
         }) {
             Text("Delete Profile")
