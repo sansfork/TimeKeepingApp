@@ -34,6 +34,7 @@ import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,12 +57,12 @@ data class GroupItem(
 private val _profileLimit = 6
 
 @Composable
-fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:() -> Unit) {
+fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:() -> Unit, viewGroupList: GroupListViewModel) {
 
     val activityContext = LocalContext.current
 
     // Remember variables
-    var gItems by remember { mutableStateOf(listOf<GroupItem>()) }
+    val gItems = viewGroupList.listItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("John Doe") }
     var itemActivity by remember { mutableStateOf("None") }
@@ -87,29 +88,13 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            items(gItems){
+            items(gItems.value){
                 item ->
-                if (item.isEditing) {
-                    GroupItemEditor(item = item, onEditComplete = {
-                        editedName, editedActivity ->
-                        gItems = gItems.map { it.copy(isEditing = false) }
-                        val editedItem = gItems.find{it.id == item.id}
-                        editedItem?.let {
-                            it.name = editedName
-                            it.activity = editedActivity
-                        }
-                    })
-                }else{
-                    GroupListItem(
-                        item = item,
-                        onEditClick = {
-                            // Finding out which item we're editing and changing 'isEditing' to True
-                            gItems = gItems.map { it.copy(isEditing = it.id == item.id) }
-                        },
-                        onDeleteClick = { gItems = gItems - item },
-                        navigationToProfileScreen = navigationToProfileScreen
-                    )
-                }
+                GroupListItem(
+                    item = item,
+                    onDeleteClick = {  },
+                    navigationToProfileScreen = navigationToProfileScreen
+                )
             }
         }
         // Back Button & Add "Profile" Button
@@ -127,7 +112,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                     // If number of items in LazyColumn
                     // reaches limit (5 for testing),
                     // generate pop-up message
-                    if (gItems.size+1 > _profileLimit) {
+                    if (viewGroupList.size+1 > _profileLimit) {
                         Toast.makeText(activityContext,
                             "Item Limit Reached (Max. $_profileLimit)",
                             Toast.LENGTH_LONG).show()
@@ -151,14 +136,17 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                         Button(onClick = {
                             if (itemName.isNotBlank()) {
                                 val newItem = GroupItem(
-                                    id = gItems.size+1,
+                                    // Need better way to create ids
+                                    // Will create problems when removing items with the same id
+                                    // Create ids based on date-time?? Like a seed for a rogue-like
+                                    id = viewGroupList.size+1,
                                     name = itemName,
                                     activity = itemActivity,
                                 )
-                                gItems += newItem
+                                viewGroupList.AddItem(newItem)
                                 showDialog = false
-                                itemName = ""
-                                itemActivity = ""
+                                itemName = "John Doe"
+                                itemActivity = "None"
                             }
                         }) {
                             Text("Add")
@@ -236,7 +224,7 @@ fun GroupItemEditor(item: GroupItem, onEditComplete: (String, String) -> Unit) {
 @Composable
 fun GroupListItem(
     item: GroupItem,
-    onEditClick: () -> Unit,
+    //onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     navigationToProfileScreen: () -> Unit
 ){
@@ -283,5 +271,5 @@ fun GroupListItem(
 @Preview(showBackground = true)
 @Composable
 fun GroupPreview() {
-    GroupScreen({}, {})
+    GroupScreen({}, {}, GroupListViewModel())
 }

@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
             val viewStopwatch: StopwatchViewModel by viewModels()
             val viewTimer: TimerViewModel by viewModels()
             val viewInterval: IntervalViewModel by viewModels()
+            val viewGroupList: GroupListViewModel by viewModels()
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
@@ -32,6 +33,7 @@ class MainActivity : ComponentActivity() {
                         viewStopwatch,
                         viewTimer,
                         viewInterval,
+                        viewGroupList,
                     )
                 }
             }
@@ -43,12 +45,16 @@ class MainActivity : ComponentActivity() {
 fun ScreenDisplay(modifier: Modifier,
                   viewStopwatch: StopwatchViewModel,
                   viewTimer: TimerViewModel,
-                  viewInterval: IntervalViewModel) {
-    MyApp(viewStopwatch, viewTimer, viewInterval)
+                  viewInterval: IntervalViewModel,
+                  viewGroupList: GroupListViewModel,
+) {
+    MyApp(viewStopwatch, viewTimer, viewInterval, viewGroupList)
 }
 // Fingerprint Scanner when deleting a profile (to fulfil the course requirement of using a phone sensor)
 @Composable
-fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel, viewInterval: IntervalViewModel) {
+fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel,
+          viewInterval: IntervalViewModel, viewGroupList: GroupListViewModel,
+) {
     val navController = rememberNavController()
 
     // Stopwatch LaunchedEffect(s)
@@ -105,7 +111,8 @@ fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel, viewInte
         composable("groupscreen") {
             GroupScreen(
                 {navController.navigate("choicescreen")},
-                {navController.navigate("profilescreen")}
+                {navController.navigate("profilescreen")},
+                viewGroupList
             )
         }
         composable("personalscreen") {
