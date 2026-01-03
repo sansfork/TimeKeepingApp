@@ -9,7 +9,6 @@ class GroupListViewModel: ViewModel() {
     private val _listItems = MutableStateFlow<List<GroupItem>>(emptyList())
     private var _size = 0
     val listItems = _listItems.asStateFlow()
-    val size = _size
 
     fun AddItem(newItem: GroupItem) {
         _listItems.value += newItem
@@ -24,5 +23,9 @@ class GroupListViewModel: ViewModel() {
             list -> list.filterNot { it.id == itemId }
         }
         _size -= 1
+    }
+
+    fun GetSize(): Int {
+        return _size
     }
 }

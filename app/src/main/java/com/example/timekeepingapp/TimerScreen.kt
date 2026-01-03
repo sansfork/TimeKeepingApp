@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import java.nio.file.WatchEvent
 
 @Composable
 fun TimerScreen(viewModel: TimerViewModel) {
@@ -33,6 +34,7 @@ fun TimerScreen(viewModel: TimerViewModel) {
         verticalArrangement = Arrangement.SpaceEvenly
     ) {
         TimerText(time = viewModel.time.value)
+        Text("Edit", modifier = Modifier.padding(vertical = 16.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,

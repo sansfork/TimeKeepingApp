@@ -1,5 +1,6 @@
 package com.example.timekeepingapp
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -55,6 +56,7 @@ data class GroupItem(
 )
 
 private val _profileLimit = 6
+private var _idTracker = 0
 
 @Composable
 fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:() -> Unit, viewGroupList: GroupListViewModel) {
@@ -92,7 +94,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                 item ->
                 GroupListItem(
                     item = item,
-                    onDeleteClick = {  },
+                    onDeleteClick = { viewGroupList.RemoveItemById(item.id) },
                     navigationToProfileScreen = navigationToProfileScreen
                 )
             }
@@ -112,7 +114,8 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                     // If number of items in LazyColumn
                     // reaches limit (5 for testing),
                     // generate pop-up message
-                    if (viewGroupList.size+1 > _profileLimit) {
+                    println("viewGroupList.size = ${viewGroupList.GetSize()}")
+                    if (viewGroupList.GetSize()+1 > _profileLimit) {
                         Toast.makeText(activityContext,
                             "Item Limit Reached (Max. $_profileLimit)",
                             Toast.LENGTH_LONG).show()
@@ -139,10 +142,11 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                                     // Need better way to create ids
                                     // Will create problems when removing items with the same id
                                     // Create ids based on date-time?? Like a seed for a rogue-like
-                                    id = viewGroupList.size+1,
+                                    id = _idTracker,
                                     name = itemName,
                                     activity = itemActivity,
                                 )
+                                _idTracker += 1
                                 viewGroupList.AddItem(newItem)
                                 showDialog = false
                                 itemName = "John Doe"
@@ -261,13 +265,14 @@ fun GroupListItem(
             //IconButton(onClick = onEditClick) {
             //    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
             //}
-            //IconButton(onClick = onDeleteClick) {
-            //    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-            //}
+            IconButton(onClick = onDeleteClick) {
+                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+            }
         }
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun GroupPreview() {
