@@ -1,6 +1,8 @@
 package com.example.timekeepingapp
 
+import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,43 +10,66 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val _timerPageLimit = 5
+private val _timerPageLimit = 5 // Raise to 10
 private val _stopwatchPageLimit = 5
 private val _intervalPageLimit = 5
 
+private var _idTracker = 1
+
+
 @Composable
 fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
-                   viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel,
+                   viewStopwatch: StopwatchViewModel, //viewTimer: TimerViewModel,
+                   viewTimerList: TimerListViewModel,
                    viewInterval: IntervalViewModel) {
 
     val activityContext = LocalContext.current
 
-    var timerPageCount by remember { mutableIntStateOf(1) }
+    val listTimers by viewTimerList.timerList.collectAsState()
+
+    //var timerPageCount by remember { mutableIntStateOf(1) }
+    var showTimerDialog by remember { mutableStateOf(false) }
+
     var stopwatchPageCount by remember { mutableIntStateOf(1) }
     var intervalPageCount by remember { mutableIntStateOf(1) }
 
+    var timerMinutes by remember { mutableStateOf("0") }
+    var timerSeconds by remember { mutableStateOf("30") }
+
     val personalPages = rememberPagerState(initialPage = 0, pageCount = { 3 })
-    val timerPages = rememberPagerState(initialPage = 0, pageCount = { timerPageCount })
+    val timerPages = rememberPagerState(initialPage = 0, pageCount = { listTimers.size })
     val stopwatchPages = rememberPagerState(initialPage = 0, pageCount = { stopwatchPageCount })
     val intervalPages = rememberPagerState(initialPage = 0, pageCount = { intervalPageCount })
 
@@ -69,18 +94,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                 0 -> VerticalPager(state = timerPages) {
                     page ->
                     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
-                        when (page) {
-                            0 -> TimerScreen(viewTimer)
-                            1 -> TimerScreen(viewTimer)
-                            2 -> TimerScreen(viewTimer)
-                            3 -> TimerScreen(viewTimer)
-                            4 -> TimerScreen(viewTimer)
-                            //5 -> TimerScreen(viewTimer)
-                            //6 -> TimerScreen(viewTimer)
-                            //7 -> TimerScreen(viewTimer)
-                            //8 -> TimerScreen(viewTimer)
-                            //9 -> TimerScreen(viewTimer)
-                        }
+                        TimerScreen(listTimers[page])
                     }
                 }
                 // EXPERIMENTAL (Start/Stop works)
@@ -111,25 +125,31 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                 }
             }
         }
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+        Row(modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween) {
+            // Navigate back to ChoiceScreen
             Button(onClick = {
                 navigationToChoiceScreen()
             }) {
                 Text("Back")
             }
+            // Create new Timer/Stopwatch/Interval based on HorizontalPager page
             Button(onClick = {
+                // If User is on Timer Page
                 if (personalPages.currentPage == 0) {
 
-                    if (timerPageCount+1 > _timerPageLimit) {
+                    if (listTimers.size+1 > _timerPageLimit) {
                         Toast.makeText(
                             activityContext,
                             "Item Limit Reached (Max. $_timerPageLimit)",
                             Toast.LENGTH_LONG).show()
                     } else {
-                        timerPageCount += 1
+                        showTimerDialog = true
                     }
 
+                // If User is on Stopwatch Page
                 } else if (personalPages.currentPage == 1) {
 
                     if (stopwatchPageCount+1 > _stopwatchPageLimit) {
@@ -141,6 +161,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                         stopwatchPageCount += 1
                     }
 
+                // If User is on Interval Page
                 } else if (personalPages.currentPage == 2){
 
                     if (intervalPageCount+1 > _intervalPageLimit) {
@@ -156,18 +177,80 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
-        }
 
+            if (showTimerDialog) {
+                AlertDialog(onDismissRequest = {showTimerDialog = false},
+                    confirmButton = {
+                        Row(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween) {
+                            Button(onClick = {
+                                if (timerSeconds.isNotBlank()) {
+                                    val newTimer = TimerModel(
+                                        id = _idTracker,
+                                        time = ConvertTimeToLong(timerMinutes, timerSeconds),
+                                        reset_time = ConvertTimeToLong(timerMinutes, timerSeconds),
+                                        isRunning = false
+                                    )
+                                    _idTracker += 1
+                                    viewTimerList.AddTimer(newTimer)
+                                    showTimerDialog = false
+                                    timerMinutes = "0"
+                                    timerSeconds = "30"
+                                }
+                            }) {
+                                Text("Add")
+                            }
+                            Button(onClick = {showTimerDialog = false}) {
+                                Text("Cancel")
+                            }
+                        }
+                    },
+                    title = { Text("Add new Timer") },
+                    text = {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = timerMinutes,
+                                onValueChange = { input ->
+                                    if (input.matches(Regex("\\d*"))) {
+                                        timerMinutes = input
+                                    }
+                                },
+                                singleLine = true,
+                                modifier = Modifier.width(80.dp)
+                            )
+                            Text(":", modifier = Modifier.padding(8.dp))
+                            OutlinedTextField(
+                                value = timerSeconds,
+                                onValueChange = { input ->
+                                    if (input.matches(Regex("\\d*"))) {
+                                        timerSeconds = input
+                                    }
+                                },
+                                singleLine = true,
+                                modifier = Modifier.width(80.dp)
+                            )
+                        }
+                    },
+                )
+            }
+        }
     }
 }
-// HorizontalPager pages (to be moved to separate files)
+
+
 
 @Preview(showBackground = true)
 @Composable
 fun PersonalPreview() {
     PersonalScreen({},
         viewStopwatch = StopwatchViewModel(),
-        viewTimer = TimerViewModel(),
+        //viewTimer = TimerViewModel(TimerModel(0, 30L, false)),
+        viewTimerList = TimerListViewModel(),
         viewInterval = IntervalViewModel()
         )
 }

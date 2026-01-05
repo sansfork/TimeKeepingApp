@@ -1,5 +1,6 @@
 package com.example.timekeepingapp
 
+import android.R.attr.clickable
 import android.text.format.DateUtils.formatElapsedTime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -16,7 +17,7 @@ fun TimerText(time: Long) {
         text = formatElapsedTime(time),
         fontSize = 64.sp,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 16.dp)
+        modifier = Modifier.padding(vertical = 16.dp),
     )
 }
 
@@ -54,4 +55,8 @@ fun ResetButton(onResetClick: () -> Unit) {
     Button(onResetClick) {
         Text("Reset")
     }
+}
+
+fun ConvertTimeToLong(minutes: String, seconds: String): Long {
+    return minutes.toLong()*60 + seconds.toLong()
 }
