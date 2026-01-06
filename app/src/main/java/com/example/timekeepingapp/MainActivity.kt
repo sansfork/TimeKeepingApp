@@ -24,19 +24,17 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            val viewStopwatch: StopwatchViewModel by viewModels()
-            val viewTimer: TimerViewModel by viewModels()
             val viewTimerList: TimerListViewModel by viewModels()
-            val viewInterval: IntervalViewModel by viewModels()
+            val viewStopwatchList: StopwatchListViewModel by viewModels()
+            val viewIntervalList: IntervalListViewModel by viewModels()
             val viewGroupList: GroupListViewModel by viewModels()
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
                         modifier = Modifier.padding(innerPadding),
-                        viewStopwatch,
-                        viewTimer,
                         viewTimerList,
-                        viewInterval,
+                        viewStopwatchList,
+                        viewIntervalList,
                         viewGroupList,
                     )
                 }
@@ -47,26 +45,28 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ScreenDisplay(modifier: Modifier,
-                  viewStopwatch: StopwatchViewModel,
-                  viewTimer: TimerViewModel,
                   viewTimerList: TimerListViewModel,
-                  viewInterval: IntervalViewModel,
+                  viewStopwatchList: StopwatchListViewModel,
+                  viewIntervalList: IntervalListViewModel,
                   viewGroupList: GroupListViewModel,
 ) {
-    MyApp(viewStopwatch, viewTimer, viewTimerList, viewInterval, viewGroupList)
+    MyApp(viewTimerList, viewStopwatchList, viewIntervalList, viewGroupList)
 }
 // Fingerprint Scanner when deleting a profile (to fulfil the course requirement of using a phone sensor)
 @Composable
-fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel, viewTimerList: TimerListViewModel,
-          viewInterval: IntervalViewModel, viewGroupList: GroupListViewModel,
+fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListViewModel,
+          viewIntervalList: IntervalListViewModel, viewGroupList: GroupListViewModel,
 ) {
     val navController = rememberNavController()
 
     // Stopwatch LaunchedEffect(s)
-    LaunchedEffect(viewStopwatch.isRunning.value) {
-        while (viewStopwatch.isRunning.value) {
-            delay(15)
-            viewStopwatch.time.value += 1
+    val stopwatches by viewStopwatchList.stopwatchList.collectAsState()
+    LaunchedEffect(viewStopwatchList) {
+        while (true) {
+            if (stopwatches.any { it.isRunning }) {
+                viewStopwatchList.timeLoop()
+            }
+            delay(1000)
         }
     }
 
@@ -82,30 +82,14 @@ fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel, viewTime
     }
 
     // Interval LaunchedEffect(s)
-    LaunchedEffect(viewInterval.isRunning.value) {
-        val workTime = viewInterval.workTime.value
-        val breakTime = viewInterval.breakTime.value
-
-        for (i in 1 until viewInterval.sets.value+1) {
-
-            viewInterval.setsDone.value = i
-
-            while (viewInterval.isRunning.value && viewInterval.workTime.value != 0L) {
-                delay(15*60)
-                viewInterval.workTime.value -= 1
+    val intervals by viewIntervalList.intervalList.collectAsState()
+    LaunchedEffect(viewIntervalList) {
+        while (true) {
+            if (intervals.any { it.isRunning }) {
+                viewIntervalList.timeLoop()
             }
-            viewInterval.isWorking.value = false
-
-            while (viewInterval.isRunning.value && viewInterval.breakTime.value != 0L) {
-                delay(15*60)
-                viewInterval.breakTime.value -= 1
-            }
-            viewInterval.isWorking.value = true
-
-            viewInterval.workTime.value = workTime
-            viewInterval.breakTime.value = breakTime
+            delay(1000)
         }
-        viewInterval.isRunning.value = false
     }
 
     NavHost(navController, "choicescreen") {
@@ -125,10 +109,9 @@ fun MyApp(viewStopwatch: StopwatchViewModel, viewTimer: TimerViewModel, viewTime
         composable("personalscreen") {
             PersonalScreen(
                 {navController.navigate("choicescreen") },
-                viewStopwatch,
-                //viewTimer,
                 viewTimerList,
-                viewInterval
+                viewStopwatchList,
+                viewIntervalList
             )
         }
         composable("profilescreen") {

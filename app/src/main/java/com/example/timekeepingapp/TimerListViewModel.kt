@@ -35,7 +35,7 @@ class TimerListViewModel: ViewModel() {
             // Check if any timer is running, and update their time if so
             timers.map { timer ->
                 if (timer.isRunning && timer.time > 0) {
-                    timer.copy(time = timer.time -1)
+                    timer.copy(time = timer.time - 1)
                 } else {
                     timer
                 }

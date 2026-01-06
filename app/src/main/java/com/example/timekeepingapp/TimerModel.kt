@@ -1,6 +1,6 @@
 package com.example.timekeepingapp
 
-data class TimerModel(val id: Int, var time: Long, var reset_time: Long, var isRunning: Boolean, var label: String = "Timer ${id+1}")
+data class TimerModel(val id: Int, var time: Long, var reset_time: Long, var isRunning: Boolean = false, var label: String = "Timer ${id+1}")
 
 //class TimerRepository {
 

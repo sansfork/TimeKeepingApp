@@ -52,7 +52,8 @@ fun TimerScreen(timerModel: TimerModel) {
         Button(onClick = {isEditing = true},
             colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent,
                 contentColor = Color.Black)){
-            Text("Edit")}
+            Text("Edit")
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -152,5 +153,5 @@ fun TimerScreen(timerModel: TimerModel) {
 @Preview(showBackground = true)
 @Composable
 fun TimerPreview() {
-    TimerScreen(TimerModel(0, 30L, 30L, false))
+    TimerScreen(TimerModel(0, 30L, 30L))
 }
