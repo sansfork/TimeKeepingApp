@@ -1,7 +1,10 @@
 package com.example.timekeepingapp
 
+import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,11 +27,13 @@ import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.fragment.app.FragmentActivity
 
 @Composable
-fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
+fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit, viewGroupList: GroupListViewModel) {
 
     val activityContext = LocalContext.current
+    val profile = viewGroupList.GetItemById(id)
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -36,7 +41,7 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -44,8 +49,8 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.End
             ) {
-                Text("Name: John Doe", fontSize = 24.sp)
-                Text("Current Activity: None", fontSize = 24.sp)
+                Text("Name: ${profile?.name}", fontSize = 24.sp)
+                Text("", fontSize = 24.sp)
             }
         }
         Column(
@@ -53,8 +58,8 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize().padding(16.dp),
+            Box(
+                modifier = Modifier.fillMaxSize().padding(16.dp).background(Color.LightGray),
             ) {
 
             }
@@ -69,11 +74,16 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
                 Text("Back")
             }
             Button(onClick = {
-                Toast.makeText(activityContext,
-                    "You can't delete profiles yet",
-                    //"Whoopsies! You can't delete profiles yet! " +
-                    //"(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
-                    Toast.LENGTH_LONG).show()
+                //Toast.makeText(activityContext,
+                //    "Whoopsies! You can't delete profiles yet! " +
+                //    "(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
+                //    Toast.LENGTH_LONG).show()
+                showFingerprintPrompt(
+                    activity = activityContext as FragmentActivity,
+                    onConfirm = {
+                        viewGroupList.RemoveItemById(id)
+                        navigationToGroupScreen()
+                    })
             }) {
                 Text("Delete Profile")
             }
@@ -82,8 +92,9 @@ fun ProfileScreen(navigationToGroupScreen:() -> Unit) {
     }
 }
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun ProfilePreview() {
-    ProfileScreen({})
+    ProfileScreen(0, {}, GroupListViewModel())
 }

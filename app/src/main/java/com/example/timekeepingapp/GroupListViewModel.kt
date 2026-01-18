@@ -28,4 +28,8 @@ class GroupListViewModel: ViewModel() {
     fun GetSize(): Int {
         return _size
     }
+
+    fun GetItemById(itemId: Int): GroupItem? {
+        return _listItems.value.firstOrNull({ it.id == itemId })
+    }
 }

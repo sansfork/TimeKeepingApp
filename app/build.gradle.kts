@@ -44,6 +44,7 @@ android {
 dependencies {
 
     implementation("androidx.navigation:navigation-compose:2.7.4")
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

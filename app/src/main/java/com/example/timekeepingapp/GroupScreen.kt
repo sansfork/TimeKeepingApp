@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -59,7 +61,7 @@ private val _profileLimit = 6
 private var _idTracker = 0
 
 @Composable
-fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:() -> Unit, viewGroupList: GroupListViewModel) {
+fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(Int) -> Unit, viewGroupList: GroupListViewModel) {
 
     val activityContext = LocalContext.current
 
@@ -94,7 +96,6 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                 item ->
                 GroupListItem(
                     item = item,
-                    onDeleteClick = { viewGroupList.RemoveItemById(item.id) },
                     navigationToProfileScreen = navigationToProfileScreen
                 )
             }
@@ -228,9 +229,7 @@ fun GroupItemEditor(item: GroupItem, onEditComplete: (String, String) -> Unit) {
 @Composable
 fun GroupListItem(
     item: GroupItem,
-    //onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    navigationToProfileScreen: () -> Unit
+    navigationToProfileScreen: (Int) -> Unit
 ){
     Row(
         modifier = Modifier
@@ -243,12 +242,14 @@ fun GroupListItem(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(Modifier
+        Row(Modifier
             .weight(1f)
-            .padding(18.dp)) {
-            Text(text = item.name, modifier = Modifier.padding(8.dp))
-            Text(text = "Act: ${item.activity}", modifier = Modifier.padding(8.dp))
-
+            .padding(18.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(imageVector = Icons.Default.AccountCircle,
+                contentDescription = null, modifier = Modifier.size(48.dp))
+            Text(text = item.name, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 12.dp))
         }
         // Add navigation to new files (maybe files are pre-made?? but identical, like 10 empties)
         // OR MAYBE only one pre-made file (like prefab?) that you make copy of when creating
@@ -257,16 +258,10 @@ fun GroupListItem(
         // Use only one Icon (Icons.Default.KeyboardArrowRight) <- Deprecated
         // Alternative: Icons.AutoMirrored.Filled.KeyboardArrowRight
         Column(modifier = Modifier.padding(8.dp)) {
-            IconButton(onClick = navigationToProfileScreen) {
-                Icon(imageVector = Icons.Default.KeyboardArrowRight,
+            IconButton(onClick = { navigationToProfileScreen(item.id) }) {
+                Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to profile page",
                     tint = Color(0xFF5D28A8))
-            }
-            //IconButton(onClick = onEditClick) {
-            //    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-            //}
-            IconButton(onClick = onDeleteClick) {
-                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
             }
         }
     }

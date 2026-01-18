@@ -13,9 +13,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.timekeepingapp.ui.theme.TimeKeepingAppTheme
 import kotlinx.coroutines.delay
 
@@ -101,22 +103,29 @@ fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListVie
         }
         composable("groupscreen") {
             GroupScreen(
-                {navController.navigate("choicescreen")},
-                {navController.navigate("profilescreen")},
+                {navController.popBackStack()},
+                {id -> navController.navigate("profilescreen/$id")},
                 viewGroupList
             )
         }
         composable("personalscreen") {
             PersonalScreen(
-                {navController.navigate("choicescreen") },
+                {navController.popBackStack() },
                 viewTimerList,
                 viewStopwatchList,
                 viewIntervalList
             )
         }
-        composable("profilescreen") {
+        composable("profilescreen/{id}",
+                    listOf(navArgument("id") { type = NavType.IntType})
+        ) {
+            backStackEntry ->
+            val profileId = backStackEntry.arguments!!.getInt("id")
+
             ProfileScreen(
-                {navController.navigate("groupscreen")}
+                profileId,
+                {navController.popBackStack()},
+                viewGroupList
             )
         }
     }
