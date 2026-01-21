@@ -28,7 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun IntervalScreen(intervalModel: IntervalModel) {
+fun IntervalScreen(intervalModel: Interval) {
 
     var isEditing by remember { mutableStateOf(false) }
     var editWorkMinutes by remember { mutableStateOf("0") }
@@ -205,5 +205,5 @@ fun IntervalScreen(intervalModel: IntervalModel) {
 @Preview(showBackground = true)
 @Composable
 fun IntervalPreview() {
-    IntervalScreen(IntervalModel(0))
+    IntervalScreen(Interval(0))
 }

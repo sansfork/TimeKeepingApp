@@ -30,6 +30,7 @@ class MainActivity : ComponentActivity() {
             val viewStopwatchList: StopwatchListViewModel by viewModels()
             val viewIntervalList: IntervalListViewModel by viewModels()
             val viewGroupList: GroupListViewModel by viewModels()
+            val viewProfileTime: ProfileTimeViewModel by viewModels()
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
                         viewStopwatchList,
                         viewIntervalList,
                         viewGroupList,
+                        viewProfileTime,
                     )
                 }
             }
@@ -51,13 +53,15 @@ fun ScreenDisplay(modifier: Modifier,
                   viewStopwatchList: StopwatchListViewModel,
                   viewIntervalList: IntervalListViewModel,
                   viewGroupList: GroupListViewModel,
+                  viewProfileTime: ProfileTimeViewModel
 ) {
-    MyApp(viewTimerList, viewStopwatchList, viewIntervalList, viewGroupList)
+    MyApp(viewTimerList, viewStopwatchList, viewIntervalList, viewGroupList, viewProfileTime)
 }
 // Fingerprint Scanner when deleting a profile (to fulfil the course requirement of using a phone sensor)
 @Composable
 fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListViewModel,
           viewIntervalList: IntervalListViewModel, viewGroupList: GroupListViewModel,
+          viewProfileTime: ProfileTimeViewModel,
 ) {
     val navController = rememberNavController()
 
@@ -94,6 +98,16 @@ fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListVie
         }
     }
 
+    val times by viewProfileTime.timeList.collectAsState()
+    LaunchedEffect(viewProfileTime) {
+        while (true) {
+            if (times.any { it.isRunning }) {
+                viewProfileTime.timeLoop()
+            }
+            delay(1000)
+        }
+    }
+
     NavHost(navController, "choicescreen") {
         composable("choicescreen") {
             ChoiceScreen(
@@ -125,7 +139,8 @@ fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListVie
             ProfileScreen(
                 profileId,
                 {navController.popBackStack()},
-                viewGroupList
+                viewGroupList,
+                viewProfileTime
             )
         }
     }

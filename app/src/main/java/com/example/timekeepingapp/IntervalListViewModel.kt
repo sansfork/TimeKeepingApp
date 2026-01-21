@@ -8,17 +8,17 @@ import kotlin.collections.plus
 
 class IntervalListViewModel: ViewModel() {
 
-    private val _intervalList = MutableStateFlow(listOf(IntervalModel(0)))
+    private val _intervalList = MutableStateFlow(listOf(Interval(0)))
 
     private var _size = 1
 
     val intervalList = _intervalList.asStateFlow()
 
-    fun get(itemIndex: Int): IntervalModel {
+    fun get(itemIndex: Int): Interval {
         return intervalList.value[itemIndex]
     }
 
-    fun AddInterval(newInterval: IntervalModel) {
+    fun AddInterval(newInterval: Interval) {
         _intervalList.value += newInterval
         _size += 1
     }

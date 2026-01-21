@@ -8,17 +8,17 @@ import kotlin.collections.plus
 
 class StopwatchListViewModel: ViewModel() {
 
-    private val _stopwatchList = MutableStateFlow(listOf(StopwatchModel(0)))
+    private val _stopwatchList = MutableStateFlow(listOf(Stopwatch(0)))
 
     private var _size = 1
 
     val stopwatchList = _stopwatchList.asStateFlow()
 
-    fun get(itemIndex: Int): StopwatchModel {
+    fun get(itemIndex: Int): Stopwatch {
         return stopwatchList.value[itemIndex]
     }
 
-    fun AddStopwatch(newTimer: StopwatchModel) {
+    fun AddStopwatch(newTimer: Stopwatch) {
         _stopwatchList.value += newTimer
         _size += 1
     }

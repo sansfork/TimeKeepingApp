@@ -8,17 +8,17 @@ import kotlin.concurrent.timer
 
 class TimerListViewModel: ViewModel() {
 
-    private val _timerList = MutableStateFlow(listOf(TimerModel(0, 30L, 30L, false)))
+    private val _timerList = MutableStateFlow(listOf(Timer(0, time = 30L, reset_time = 30L)))
 
     private var _size = 1
 
     val timerList = _timerList.asStateFlow()
 
-    fun get(itemIndex: Int): TimerModel {
+    fun get(itemIndex: Int): Timer {
         return timerList.value[itemIndex]
     }
 
-    fun AddTimer(newTimer: TimerModel) {
+    fun AddTimer(newTimer: Timer) {
         _timerList.value += newTimer
         _size += 1
     }

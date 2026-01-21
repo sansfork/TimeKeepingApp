@@ -142,7 +142,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                             "Item Limit Reached (Max. $_stopwatchPageLimit)",
                             Toast.LENGTH_LONG).show()
                     } else {
-                        viewStopwatchList.AddStopwatch(StopwatchModel(_stopwatchId))
+                        viewStopwatchList.AddStopwatch(Stopwatch(_stopwatchId))
                         _stopwatchId += 1
                     }
 
@@ -172,7 +172,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                             horizontalArrangement = Arrangement.SpaceBetween) {
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
-                                    val newTimer = TimerModel(
+                                    val newTimer = Timer(
                                         id = _timerId,
                                         time = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         reset_time = ConvertTimeToLong(timerMinutes, timerSeconds)
@@ -232,7 +232,7 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                             horizontalArrangement = Arrangement.SpaceBetween) {
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
-                                    val newInterval = IntervalModel(
+                                    val newInterval = Interval(
                                         id = _intervalId,
                                         workTime = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         breakTime = ConvertTimeToLong(breakMinutes, breakSeconds),
