@@ -1,6 +1,7 @@
 package com.example.timekeepingapp
 
 import android.annotation.SuppressLint
+import androidx.biometric.BiometricManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -36,14 +38,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
 private var _timeId = 0
 
 @Composable
 fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
-                  viewGroupList: GroupListViewModel, viewProfileTime: ProfileTimeViewModel) {
+                  viewGroupList: GroupListViewModel, viewProfileTime: ProfileTimeViewModel,
+                  listProfileTime: MutableList<ProfileTimeViewModel>) {
 
     val activityContext = LocalContext.current
+
+    val biometricManager = BiometricManager.from(activityContext)
+    var showFingerprint: Boolean = false
+
     val profile = viewGroupList.GetItemById(id)
     val listTime by viewProfileTime.timeList.collectAsState()
 
@@ -60,6 +68,18 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
 
     var showTimerDialog by remember { mutableStateOf(false) }
     var showIntervalDialog by remember { mutableStateOf(false) }
+
+    val elapsedTime = System.currentTimeMillis()
+
+    LaunchedEffect(viewProfileTime) {
+        //if (GetRemainingTime(elapsedTime, listTime.any { it.startTimeStamp }) }) > 0)
+        while (true) {
+            if (listTime.any { it.isRunning }) {
+                viewProfileTime.timeLoop(elapsedTime)
+            }
+            delay(1000)
+        }
+    }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -109,6 +129,7 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                 //    "Whoopsies! You can't delete profiles yet! " +
                 //    "(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
                 //    Toast.LENGTH_LONG).show()
+                //showFingerprint = true
                 //showFingerprintPrompt(
                 //    activity = activityContext as FragmentActivity,
                 //    onConfirm = {
@@ -119,7 +140,7 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
             }) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = null)
             }
-            Button(onClick = {showDropdown = !showDropdown}) {
+            Button(onClick = {showDropdown = true}) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
             DropdownMenu(
@@ -148,6 +169,13 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                         showDropdown = false
                     }
                 )
+            }
+
+            if (showFingerprint) {
+                FingerprintAuthentication(
+                    onAuthSuccess = {
+
+                    })
             }
 
             if (showTimerDialog) {
@@ -337,5 +365,6 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
 @Composable
 fun ProfilePreview() {
     ProfileScreen(0, {},
-        GroupListViewModel(), ProfileTimeViewModel())
+        GroupListViewModel(), ProfileTimeViewModel(0),
+        mutableListOf())
 }

@@ -62,7 +62,6 @@ fun IntervalScreen(intervalModel: Interval) {
             ResetButton(onResetClick = {
                 intervalModel.workTime = intervalModel.reset_work
                 intervalModel.breakTime = intervalModel.reset_break
-                intervalModel.sets = 2
                 intervalModel.setsDone = 0
                 intervalModel.isWorking = true
                 intervalModel.isRunning = false

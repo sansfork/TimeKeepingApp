@@ -1,6 +1,7 @@
 package com.example.timekeepingapp
 
 import android.R.attr.clickable
+import android.os.SystemClock
 import android.text.format.DateUtils.formatElapsedTime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
@@ -10,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.sql.Time
 
 @Composable
 fun TimerText(time: Long) {
@@ -59,4 +61,21 @@ fun ResetButton(onResetClick: () -> Unit) {
 
 fun ConvertTimeToLong(minutes: String, seconds: String): Long {
     return minutes.toLong()*60 + seconds.toLong()
+}
+
+fun DivideLongWithRemainder(numerator: Long, denominator: Long): Pair<Int, Long> {
+    val div = numerator/denominator.toDouble()
+    val divList = div.toString().split(".").toMutableList()
+    divList[1] = "0." + divList[1]
+    return Pair(divList[0].toInt(), (divList[1].toDouble()*denominator).toLong())
+}
+
+fun GetRemainingTime(elapsedTime: Long, timeStamp: Long): Long {
+    if (timeStamp == 0L) return 0L
+
+    val timeDiff = elapsedTime - timeStamp
+    if (timeDiff < 0) {
+        return 0L
+    }
+    return timeDiff
 }

@@ -61,7 +61,8 @@ private val _profileLimit = 6
 private var _idTracker = 0
 
 @Composable
-fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(Int) -> Unit, viewGroupList: GroupListViewModel) {
+fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(Int) -> Unit,
+                viewGroupList: GroupListViewModel, listProfileTime: MutableList<ProfileTimeViewModel>) {
 
     val activityContext = LocalContext.current
 
@@ -71,6 +72,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
     var itemName by remember { mutableStateOf("John Doe") }
     var itemActivity by remember { mutableStateOf("None") }
 
+    println("No. of ProfileTimeVMs - ${listProfileTime.size}")
 
     // Column of "profiles"
     Column(
@@ -147,6 +149,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                                     name = itemName,
                                     activity = itemActivity,
                                 )
+                                listProfileTime.add(ProfileTimeViewModel(_idTracker))
                                 _idTracker += 1
                                 viewGroupList.AddItem(newItem)
                                 showDialog = false
@@ -271,5 +274,5 @@ fun GroupListItem(
 @Preview(showBackground = true)
 @Composable
 fun GroupPreview() {
-    GroupScreen({}, {}, GroupListViewModel())
+    GroupScreen({}, {}, GroupListViewModel(), mutableListOf())
 }
