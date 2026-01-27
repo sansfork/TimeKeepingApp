@@ -49,15 +49,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class GroupItem(
     val id: Int,
     var name: String,
     var activity: String,
-    var isEditing: Boolean = false,
+    var isEditing: Boolean,
 )
 
-private val _profileLimit = 6
 private var _idTracker = 0
 
 @Composable
@@ -114,18 +115,8 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
             // 'Add Profile' Button
             Button(
                 onClick = {
-                    // If number of items in LazyColumn
-                    // reaches limit (5 for testing),
-                    // generate pop-up message
-                    println("viewGroupList.size = ${viewGroupList.GetSize()}")
-                    if (viewGroupList.GetSize()+1 > _profileLimit) {
-                        Toast.makeText(activityContext,
-                            "Item Limit Reached (Max. $_profileLimit)",
-                            Toast.LENGTH_LONG).show()
-                    }else {
-                        //Display AlertDialog
-                        showDialog = true
-                    }
+                    //Display AlertDialog
+                    showDialog = true
                 }
             ) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
@@ -148,6 +139,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                                     id = _idTracker,
                                     name = itemName,
                                     activity = itemActivity,
+                                    isEditing = false,
                                 )
                                 listProfileTime.add(ProfileTimeViewModel(_idTracker))
                                 _idTracker += 1

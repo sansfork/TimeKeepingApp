@@ -16,6 +16,8 @@ class ProfileTimeViewModel(id: Int): ViewModel() {
 
     private var _size = 0
 
+    var size = _size
+
     val timeList = _timeList.asStateFlow()
 
     fun get(itemIndex: Int): Time {

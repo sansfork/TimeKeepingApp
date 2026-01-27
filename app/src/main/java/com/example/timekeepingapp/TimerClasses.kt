@@ -1,5 +1,8 @@
 package com.example.timekeepingapp
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 sealed interface Time {
     val id: Int
     var label: String
@@ -7,6 +10,7 @@ sealed interface Time {
     var timeStamp: Long
 }
 
+@Serializable
 data class Timer (
     override val id: Int,
     override var label: String = "Timer ${id+1}",
@@ -16,6 +20,7 @@ data class Timer (
     override var timeStamp: Long = 0L
 ): Time
 
+@Serializable
 data class Stopwatch (
     override val id: Int,
     override var label: String = "Stopwatch ${id+1}",
@@ -25,6 +30,7 @@ data class Stopwatch (
     override var timeStamp: Long = 0L
 ): Time
 
+@Serializable
 data class Interval (
     override val id: Int,
     override var label: String = "Interval ${id+1}",

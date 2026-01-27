@@ -1,8 +1,15 @@
 package com.example.timekeepingapp
 
+import android.app.Activity
+import android.app.Application
+import android.content.Context
+import android.content.ContextWrapper
+import android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
+import android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -24,7 +31,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,12 +51,50 @@ import kotlinx.coroutines.delay
 import java.util.concurrent.Executor
 import kotlin.collections.emptyList
 
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
+    private lateinit var biometricPrompt: BiometricPrompt
+    private lateinit var promptInfo: BiometricPrompt.PromptInfo
+
+    // callbacks set by screens
+    private var onAuthSuccess: (() -> Unit)? = null
+    private var onAuthFail: (() -> Unit)? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {
 
+        val executor = ContextCompat.getMainExecutor(this)
+
+        // Initialize BiometricPrompt
+        biometricPrompt = BiometricPrompt(this, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    onAuthSuccess?.invoke()
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    onAuthFail?.invoke()
+                }
+
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    onAuthFail?.invoke()
+                }
+            })
+
+        // Only allow biometric (fingerprint) for simplicity
+        // If you want PIN fallback, remove negativeButtonText
+        promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("Fingerprint Confirmation")
+            .setSubtitle("Scan Finger to Delete Profile")
+            .setNegativeButtonText("Cancel") // works with BIOMETRIC_STRONG only
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            .build()
+
+        setContent {
+            println("Current Activity Context: ${LocalContext.current}")
             val listProfileTime = mutableListOf<ProfileTimeViewModel>()
 
             val viewTimerList: TimerListViewModel by viewModels()
@@ -69,60 +116,14 @@ class MainActivity : FragmentActivity() {
             }
         }
     }
-}
-
-@Composable
-fun FingerprintAuthentication(canAuthenticate: Boolean = true, onAuthSuccess: () -> Unit) {
-    val context = LocalContext.current
-    val activity = context as FragmentActivity
-    val executor: Executor = ContextCompat.getMainExecutor(activity)
-
-    val biometricPrompt = remember {
-        BiometricPrompt(activity, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    Toast.makeText(context, "Fingerprint Confirmed, Deletion Successful", Toast.LENGTH_SHORT).show()
-                    onAuthSuccess()
-                }
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    Toast.makeText(context, "Fingerprint Not Recognized, Deletion Cancelled", Toast.LENGTH_SHORT).show()
-                }
-
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    Toast.makeText(context, "Error: $errString", Toast.LENGTH_SHORT).show()
-                }
-            })
-    }
-
-    val promptInfo = remember {
-        BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Fingerprint Confirmation")
-            .setSubtitle("Scan Finger to Delete Profile")
-            .setNegativeButtonText("Cancel")
-            .build()
-    }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    // Public function screens can call
+    fun startFingerprintAuth(
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
     ) {
-        Image(painter = painterResource(id = R.drawable.baseline_fingerprint_24),
-            contentDescription = "Fingerprint Icon",
-            modifier = Modifier.size(100.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = {
-            if (canAuthenticate) {
-                biometricPrompt.authenticate(promptInfo)
-            } else {
-                Toast.makeText(context, "Fingerprint Scan Unavailable", Toast.LENGTH_SHORT).show()
-            }
-        }) {
-            Text("SCAN FINGERPRINT")
-        }
+        onAuthSuccess = onSuccess
+        onAuthFail = onFail
+        biometricPrompt.authenticate(promptInfo)
     }
 }
 

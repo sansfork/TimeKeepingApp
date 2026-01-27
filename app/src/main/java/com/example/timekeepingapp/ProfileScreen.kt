@@ -1,6 +1,7 @@
 package com.example.timekeepingapp
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.LocalActivity
 import androidx.biometric.BiometricManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
@@ -47,10 +49,8 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                   viewGroupList: GroupListViewModel, viewProfileTime: ProfileTimeViewModel,
                   listProfileTime: MutableList<ProfileTimeViewModel>) {
 
-    val activityContext = LocalContext.current
-
-    val biometricManager = BiometricManager.from(activityContext)
-    var showFingerprint: Boolean = false
+    val activity = LocalActivity.current as MainActivity
+    var showFingerprint by remember { mutableStateOf(false) }
 
     val profile = viewGroupList.GetItemById(id)
     val listTime by viewProfileTime.timeList.collectAsState()
@@ -122,21 +122,14 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
             Button(onClick = {
                 navigationToGroupScreen()
             }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             }
             Button(onClick = {
                 //Toast.makeText(activityContext,
                 //    "Whoopsies! You can't delete profiles yet! " +
                 //    "(˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶) (˶˃\uD800\uDCF7˂˶)",
                 //    Toast.LENGTH_LONG).show()
-                //showFingerprint = true
-                //showFingerprintPrompt(
-                //    activity = activityContext as FragmentActivity,
-                //    onConfirm = {
-                //
-                //    })
-                viewGroupList.RemoveItemById(id)
-                navigationToGroupScreen()
+                showFingerprint = true
             }) {
                 Icon(imageVector = Icons.Default.Delete, contentDescription = null)
             }
@@ -172,10 +165,19 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
             }
 
             if (showFingerprint) {
-                FingerprintAuthentication(
-                    onAuthSuccess = {
-
-                    })
+                // trigger authentication directly
+                LaunchedEffect(Unit) {
+                    activity.startFingerprintAuth(
+                        onSuccess = {
+                            viewGroupList.RemoveItemById(id)
+                            navigationToGroupScreen()
+                            showFingerprint = false
+                        },
+                        onFail = {
+                            showFingerprint = false
+                        }
+                    )
+                }
             }
 
             if (showTimerDialog) {
