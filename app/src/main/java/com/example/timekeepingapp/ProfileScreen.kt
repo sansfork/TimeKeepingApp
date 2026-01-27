@@ -3,7 +3,9 @@ package com.example.timekeepingapp
 import android.annotation.SuppressLint
 import android.app.Application
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,11 +13,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -89,17 +94,18 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp, horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(vertical = 32.dp, horizontal = 16.dp)
+                .background(Color.White.copy(alpha = 0.8f))
+                .border(
+                    border = BorderStroke(width = 2.dp, color = Color(0XFF018786)),
+                    shape = RoundedCornerShape(0),
+                ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
-            ) {
-                Text("Name: ${profile?.name}", fontSize = 24.sp)
-                Text("", fontSize = 24.sp)
-            }
+            Icon(imageVector = Icons.Default.AccountCircle,
+                contentDescription = null, modifier = Modifier.size(60.dp).padding(8.dp))
+            Text("${profile?.name}", fontSize = 24.sp, modifier = Modifier.padding(8.dp))
         }
         Column(
             modifier = Modifier.fillMaxSize().weight(1f),
@@ -107,7 +113,12 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
-                modifier = Modifier.fillMaxSize().padding(16.dp).background(Color.Gray),
+                modifier = Modifier.fillMaxSize().padding(16.dp)
+                    .background(Color.White.copy(alpha = 0.8f))
+                    .border(
+                        border = BorderStroke(width = 2.dp, color = Color(0XFF018786)),
+                        shape = RoundedCornerShape(0),
+                    ),
             ) {
                 VerticalPager(timePages) {
                     page ->

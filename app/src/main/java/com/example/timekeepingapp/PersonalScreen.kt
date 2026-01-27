@@ -2,6 +2,9 @@ package com.example.timekeepingapp
 
 import android.annotation.SuppressLint
 import android.app.Application
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.AlertDialog
@@ -29,6 +33,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -74,31 +79,33 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Welcome to Personal Mode", fontSize = 24.sp, modifier = Modifier.padding(top = 28.dp))
-        // ViewPager2 (Use separate files for each page) (For now, Composables in same place)
+        Text("Welcome to Personal Mode", fontSize = 24.sp, color = Color.White, modifier = Modifier.padding(top = 28.dp))
+
         HorizontalPager(
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
-                .padding(16.dp),
+                .padding(16.dp)
+                .background(Color.White.copy(alpha = 0.8f))
+                .border(
+                    border = BorderStroke(width = 2.dp, color = Color(0XFF018786)),
+                    shape = RoundedCornerShape(0),
+                ),
             state = personalPages
         ) {
             page -> when (page) {
-                // EXPERIMENTAL (Works well)
                 0 -> VerticalPager(state = timerPages) {
                     page ->
                     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
                         TimerScreen(listTimers[page])
                     }
                 }
-                // EXPERIMENTAL (Start/Stop works)
                 1 -> VerticalPager(state = stopwatchPages) {
                     page ->
                     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
                         StopwatchScreen(listStopwatches[page])
                     }
                 }
-                // Not Implemented
                 2 -> VerticalPager(state = intervalPages) {
                     page ->
                     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {

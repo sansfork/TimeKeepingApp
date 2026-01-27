@@ -80,7 +80,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
             .fillMaxWidth()
             .padding(vertical = 28.dp)
             .wrapContentWidth(align = Alignment.CenterHorizontally)) {
-            Text("Welcome to Group Mode", fontSize = 18.sp)
+            Text("Welcome to Group Mode", color = Color.White, fontSize = 24.sp)
         }
         // Space for adding "profiles" (Lazy Column)
         LazyColumn(
@@ -147,7 +147,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                         }
                     }
                 },
-                title = {Text("Add Group Item")},
+                title = {Text("Add Profile")},
                 text = {
                     Column {
                         OutlinedTextField(
@@ -224,7 +224,7 @@ fun GroupListItem(
             .border(
                 border = BorderStroke(width = 2.dp, color = Color(0XFF018786)),
                 shape = RoundedCornerShape(0),
-            ),
+            ).background(color = Color.White.copy(alpha = 0.95f)),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -241,7 +241,7 @@ fun GroupListItem(
             IconButton(onClick = { navigationToProfileScreen(item.id) }) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to profile page",
-                    tint = Color(0xFF5D28A8))
+                    tint = Color(0xFF01678f))
             }
         }
     }

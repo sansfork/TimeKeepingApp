@@ -2,13 +2,14 @@ package com.example.timekeepingapp
 
 import android.app.Application
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -17,7 +18,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -77,14 +83,26 @@ class MainActivity : AppCompatActivity() {
             val viewGroupList: GroupListViewModel by viewModels()
 
             TimeKeepingAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    ScreenDisplay(
-                        modifier = Modifier.padding(innerPadding),
-                        viewTimerList,
-                        viewStopwatchList,
-                        viewIntervalList,
-                        viewGroupList,
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.app_background),
+                        contentDescription = "Background Image",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        colorFilter = ColorFilter.tint(Color.Black.copy(alpha = 0.65f), BlendMode.Darken)
                     )
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        containerColor = Color.Transparent
+                    ) { innerPadding ->
+                        ScreenDisplay(
+                            modifier = Modifier.padding(innerPadding),
+                            viewTimerList,
+                            viewStopwatchList,
+                            viewIntervalList,
+                            viewGroupList,
+                        )
+                    }
                 }
             }
         }
