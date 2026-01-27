@@ -1,16 +1,14 @@
 package com.example.timekeepingapp
 
 import android.annotation.SuppressLint
-import android.widget.Toast
+import android.app.Application
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -21,26 +19,22 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Snackbar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -59,21 +54,19 @@ data class GroupItem(
     var isEditing: Boolean,
 )
 
-private var _idTracker = 0
-
 @Composable
 fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(Int) -> Unit,
-                viewGroupList: GroupListViewModel, listProfileTime: MutableList<ProfileTimeViewModel>) {
+                viewGroupList: GroupListViewModel) {
 
     val activityContext = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val idTracker by activityContext.groupIdTrackerFlow().collectAsState(initial = 0)
 
     // Remember variables
     val gItems = viewGroupList.listItems.collectAsState()
     var showDialog by remember { mutableStateOf(false) }
     var itemName by remember { mutableStateOf("John Doe") }
     var itemActivity by remember { mutableStateOf("None") }
-
-    println("No. of ProfileTimeVMs - ${listProfileTime.size}")
 
     // Column of "profiles"
     Column(
@@ -110,7 +103,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
             Button(onClick = {
                 navigationToChoiceScreen()
             }) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             }
             // 'Add Profile' Button
             Button(
@@ -133,16 +126,14 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                         Button(onClick = {
                             if (itemName.isNotBlank()) {
                                 val newItem = GroupItem(
-                                    // Need better way to create ids
-                                    // Will create problems when removing items with the same id
-                                    // Create ids based on date-time?? Like a seed for a rogue-like
-                                    id = _idTracker,
+                                    id = idTracker,
                                     name = itemName,
                                     activity = itemActivity,
                                     isEditing = false,
                                 )
-                                listProfileTime.add(ProfileTimeViewModel(_idTracker))
-                                _idTracker += 1
+                                coroutineScope.launch {
+                                    activityContext.saveGroupIdTracker(idTracker + 1)
+                                }
                                 viewGroupList.AddItem(newItem)
                                 showDialog = false
                                 itemName = "John Doe"
@@ -158,7 +149,7 @@ fun GroupScreen(navigationToChoiceScreen:() -> Unit, navigationToProfileScreen:(
                 },
                 title = {Text("Add Group Item")},
                 text = {
-                    Column() {
+                    Column {
                         OutlinedTextField(
                             value = itemName,
                             onValueChange = {itemName = it},
@@ -246,12 +237,6 @@ fun GroupListItem(
                 contentDescription = null, modifier = Modifier.size(48.dp))
             Text(text = item.name, fontSize = 16.sp, modifier = Modifier.padding(horizontal = 12.dp))
         }
-        // Add navigation to new files (maybe files are pre-made?? but identical, like 10 empties)
-        // OR MAYBE only one pre-made file (like prefab?) that you make copy of when creating
-        // new profile and then delete copy when you delete profile??
-
-        // Use only one Icon (Icons.Default.KeyboardArrowRight) <- Deprecated
-        // Alternative: Icons.AutoMirrored.Filled.KeyboardArrowRight
         Column(modifier = Modifier.padding(8.dp)) {
             IconButton(onClick = { navigationToProfileScreen(item.id) }) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -266,5 +251,6 @@ fun GroupListItem(
 @Preview(showBackground = true)
 @Composable
 fun GroupPreview() {
-    GroupScreen({}, {}, GroupListViewModel(), mutableListOf())
+    val application = LocalContext.current.applicationContext as Application
+    GroupScreen({}, {}, GroupListViewModel(application))
 }

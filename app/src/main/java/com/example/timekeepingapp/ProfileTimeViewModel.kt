@@ -1,39 +1,48 @@
 package com.example.timekeepingapp
 
-import androidx.lifecycle.ViewModel
+import android.annotation.SuppressLint
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.lang.Math.floorDiv
-import kotlin.collections.plus
 
-class ProfileTimeViewModel(id: Int): ViewModel() {
+class ProfileTimeViewModel(val vmId: Int, application: Application): AndroidViewModel(application) {
 
-    val vmId = id
     var missedSets: Int = 0
 
     private val _timeList = MutableStateFlow<List<Time>>(emptyList())
-
-    private var _size = 0
-
-    var size = _size
-
     val timeList = _timeList.asStateFlow()
+
+    @SuppressLint("StaticFieldLeak")
+    private val context = getApplication<Application>().applicationContext
+
+    init {
+        viewModelScope.launch {
+            context.profileTimeListFlow(vmId).collect { timers ->
+                _timeList.value = timers
+            }
+        }
+    }
 
     fun get(itemIndex: Int): Time {
         return timeList.value[itemIndex]
     }
 
     fun AddTimer(newTimer: Time) {
-        _timeList.value += newTimer
-        _size += 1
+        viewModelScope.launch {
+            val updatedList = _timeList.value + newTimer
+            context.saveProfileTimeList(vmId, updatedList)
+        }
     }
 
     fun RemoveTimerById(itemId: Int) {
-        _timeList.update {
-                list -> list.filterNot { it.id == itemId }
+        viewModelScope.launch {
+            val updatedList = _timeList.value.filterNot { it.id == itemId }
+            context.saveProfileTimeList(vmId, updatedList)
         }
-        _size -= 1
     }
 
     fun tickTimer(timer: Timer, elapsedTime: Long): Timer {
@@ -163,14 +172,11 @@ class ProfileTimeViewModel(id: Int): ViewModel() {
     }
 
     fun timeLoop(elapsedTime: Long) {
-        _timeList.update { timers ->
-            // Check if any timer is running, and update their time if so
-            timers.map { timer ->
-                when (timer) {
-                    is Timer -> tickTimer(timer, elapsedTime)
-                    is Stopwatch -> tickStopwatch(timer, elapsedTime)
-                    is Interval -> tickInterval(timer, elapsedTime)
-                }
+        _timeList.value = _timeList.value.map { timer ->
+            when (timer) {
+                is Timer -> tickTimer(timer, elapsedTime)
+                is Stopwatch -> tickStopwatch(timer, elapsedTime)
+                is Interval -> tickInterval(timer, elapsedTime)
             }
         }
     }

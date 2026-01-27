@@ -1,6 +1,7 @@
 package com.example.timekeepingapp
 
-import android.widget.Toast
+import android.annotation.SuppressLint
+import android.app.Application
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,9 +23,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,15 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-private val _timerPageLimit = 5 // Raise to 10
-private val _stopwatchPageLimit = 5
-private val _intervalPageLimit = 5
-
-private var _timerId = 1
-private var _stopwatchId = 1
-private var _intervalId = 1
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
@@ -49,6 +42,11 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                    viewIntervalList: IntervalListViewModel) {
 
     val activityContext = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val timerId by activityContext.personalTimerIdTrackerFlow().collectAsState(initial = 0)
+    val stopwatchId by activityContext.personalStopwatchIdTrackerFlow().collectAsState(initial = 0)
+    val intervalId by activityContext.personalIntervalIdTrackerFlow().collectAsState(initial = 0)
 
     val listTimers by viewTimerList.timerList.collectAsState()
     val listStopwatches by viewStopwatchList.stopwatchList.collectAsState()
@@ -123,40 +121,18 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
             Button(onClick = {
                 // If User is on Timer Page
                 if (personalPages.currentPage == 0) {
-
-                    if (listTimers.size+1 > _timerPageLimit) {
-                        Toast.makeText(
-                            activityContext,
-                            "Item Limit Reached (Max. $_timerPageLimit)",
-                            Toast.LENGTH_LONG).show()
-                    } else {
-                        showTimerDialog = true
-                    }
+                    showTimerDialog = true
 
                 // If User is on Stopwatch Page
                 } else if (personalPages.currentPage == 1) {
-
-                    if (listStopwatches.size+1 > _stopwatchPageLimit) {
-                        Toast.makeText(
-                            activityContext,
-                            "Item Limit Reached (Max. $_stopwatchPageLimit)",
-                            Toast.LENGTH_LONG).show()
-                    } else {
-                        viewStopwatchList.AddStopwatch(Stopwatch(_stopwatchId))
-                        _stopwatchId += 1
+                    viewStopwatchList.AddStopwatch(Stopwatch(stopwatchId))
+                    coroutineScope.launch {
+                        activityContext.savePersonalStopwatchIdTracker(stopwatchId + 1)
                     }
 
                 // If User is on Interval Page
                 } else if (personalPages.currentPage == 2){
-
-                    if (listIntervals.size+1 > _intervalPageLimit) {
-                        Toast.makeText(
-                            activityContext,
-                            "Item Limit Reached (Max. $_intervalPageLimit)",
-                            Toast.LENGTH_LONG).show()
-                    } else {
-                        showIntervalDialog = true
-                    }
+                    showIntervalDialog = true
 
                 }
             }) {
@@ -173,11 +149,13 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
                                     val newTimer = Timer(
-                                        id = _timerId,
+                                        id = timerId,
                                         time = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         reset_time = ConvertTimeToLong(timerMinutes, timerSeconds)
                                     )
-                                    _timerId += 1
+                                    coroutineScope.launch {
+                                        activityContext.savePersonalTimerIdTracker(timerId + 1)
+                                    }
                                     viewTimerList.AddTimer(newTimer)
                                     showTimerDialog = false
                                     timerMinutes = "0"
@@ -233,14 +211,16 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
                                     val newInterval = Interval(
-                                        id = _intervalId,
+                                        id = intervalId,
                                         workTime = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         breakTime = ConvertTimeToLong(breakMinutes, breakSeconds),
                                         sets = intervalSets.toInt(),
                                         reset_work = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         reset_break = ConvertTimeToLong(breakMinutes, breakSeconds),
                                     )
-                                    _intervalId += 1
+                                    coroutineScope.launch {
+                                        activityContext.savePersonalIntervalIdTracker(intervalId + 1)
+                                    }
                                     viewIntervalList.AddInterval(newInterval)
                                     showIntervalDialog = false
                                     timerMinutes = "0"
@@ -345,12 +325,14 @@ fun PersonalScreen(navigationToChoiceScreen:() -> Unit,
 
 
 
+@SuppressLint("ViewModelConstructorInComposable")
 @Preview(showBackground = true)
 @Composable
 fun PersonalPreview() {
+    val application = LocalContext.current.applicationContext as Application
     PersonalScreen({},
-        viewTimerList = TimerListViewModel(),
-        viewStopwatchList = StopwatchListViewModel(),
-        viewIntervalList = IntervalListViewModel()
+        viewTimerList = TimerListViewModel(application),
+        viewStopwatchList = StopwatchListViewModel(application),
+        viewIntervalList = IntervalListViewModel(application)
         )
 }

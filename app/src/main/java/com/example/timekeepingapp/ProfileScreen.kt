@@ -1,8 +1,8 @@
 package com.example.timekeepingapp
 
 import android.annotation.SuppressLint
+import android.app.Application
 import androidx.activity.compose.LocalActivity
-import androidx.biometric.BiometricManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,7 +17,6 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -32,6 +31,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,16 +41,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
-
-private var _timeId = 0
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
-                  viewGroupList: GroupListViewModel, viewProfileTime: ProfileTimeViewModel,
-                  listProfileTime: MutableList<ProfileTimeViewModel>) {
+                  viewGroupList: GroupListViewModel, viewProfileTime: ProfileTimeViewModel) {
 
     val activity = LocalActivity.current as MainActivity
     var showFingerprint by remember { mutableStateOf(false) }
+
+    val activityContext = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val timeId by activityContext.profileTimeIdTrackerFlow().collectAsState(initial = 0)
 
     val profile = viewGroupList.GetItemById(id)
     val listTime by viewProfileTime.timeList.collectAsState()
@@ -150,8 +152,10 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                 DropdownMenuItem(
                     text = {Text("Stopwatch")},
                     onClick = {
-                        viewProfileTime.AddTimer(Stopwatch(_timeId))
-                        _timeId += 1
+                        viewProfileTime.AddTimer(Stopwatch(timeId))
+                        coroutineScope.launch {
+                            activityContext.saveProfileTimeIdTracker(timeId + 1)
+                        }
                         showDropdown = false
                     }
                 )
@@ -190,11 +194,13 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
                                     val newTimer = Timer(
-                                        id = _timeId,
+                                        id = timeId,
                                         time = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         reset_time = ConvertTimeToLong(timerMinutes, timerSeconds)
                                     )
-                                    _timeId += 1
+                                    coroutineScope.launch {
+                                        activityContext.saveProfileTimeIdTracker(timeId + 1)
+                                    }
                                     viewProfileTime.AddTimer(newTimer)
                                     showTimerDialog = false
                                     timerMinutes = "0"
@@ -250,14 +256,16 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
                             Button(onClick = {
                                 if (timerSeconds.isNotBlank()) {
                                     val newInterval = Interval(
-                                        id = _timeId,
+                                        id = timeId,
                                         workTime = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         breakTime = ConvertTimeToLong(breakMinutes, breakSeconds),
                                         sets = intervalSets.toInt(),
                                         reset_work = ConvertTimeToLong(timerMinutes, timerSeconds),
                                         reset_break = ConvertTimeToLong(breakMinutes, breakSeconds),
                                     )
-                                    _timeId += 1
+                                    coroutineScope.launch {
+                                        activityContext.saveProfileTimeIdTracker(timeId + 1)
+                                    }
                                     viewProfileTime.AddTimer(newInterval)
                                     showIntervalDialog = false
                                     timerMinutes = "0"
@@ -366,7 +374,7 @@ fun ProfileScreen(id: Int, navigationToGroupScreen:() -> Unit,
 @Preview(showBackground = true)
 @Composable
 fun ProfilePreview() {
+    val application = LocalContext.current.applicationContext as Application
     ProfileScreen(0, {},
-        GroupListViewModel(), ProfileTimeViewModel(0),
-        mutableListOf())
+        GroupListViewModel(application), ProfileTimeViewModel(0, application))
 }

@@ -1,45 +1,58 @@
 package com.example.timekeepingapp
 
-import androidx.lifecycle.ViewModel
+import android.annotation.SuppressLint
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlin.concurrent.timer
+import kotlinx.coroutines.launch
 
-class TimerListViewModel: ViewModel() {
 
-    private val _timerList = MutableStateFlow(listOf(Timer(0, time = 30L, reset_time = 30L)))
+class TimerListViewModel(application: Application): AndroidViewModel(application) {
 
-    private var _size = 1
-
+    private val _timerList = MutableStateFlow<List<Timer>>(emptyList())
     val timerList = _timerList.asStateFlow()
+
+    @SuppressLint("StaticFieldLeak")
+    private val context = getApplication<Application>().applicationContext
+
+    init {
+        viewModelScope.launch {
+            context.timerFlow().collect { timers ->
+                _timerList.value = timers
+            }
+        }
+    }
 
     fun get(itemIndex: Int): Timer {
         return timerList.value[itemIndex]
     }
 
     fun AddTimer(newTimer: Timer) {
-        _timerList.value += newTimer
-        _size += 1
+        viewModelScope.launch {
+            val updatedList = _timerList.value + newTimer
+            context.saveTimers(updatedList)
+        }
     }
 
     fun RemoveTimerById(itemId: Int) {
-        _timerList.update {
-            list -> list.filterNot { it.id == itemId }
+        viewModelScope.launch {
+            val updatedList = _timerList.value.filterNot { it.id == itemId }
+            context.saveTimers(updatedList)
         }
-        _size -= 1
     }
 
     fun timeLoop() {
-        _timerList.update { timers ->
-            // Check if any timer is running, and update their time if so
-            timers.map { timer ->
-                if (timer.isRunning && timer.time > 0) {
-                    timer.copy(time = timer.time - 1)
-                } else {
-                    timer
-                }
+        val updatedList = _timerList.value.map { timer ->
+            if (timer.isRunning && timer.time > 0) {
+                timer.copy(time = timer.time - 1)
+            } else {
+                timer
             }
         }
+        // We don't save the updated list to DataStore here to avoid excessive writes.
+        // The user can save the state manually if needed.
+        _timerList.value = updatedList
     }
 }

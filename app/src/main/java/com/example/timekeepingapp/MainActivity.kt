@@ -1,46 +1,25 @@
 package com.example.timekeepingapp
 
-import android.app.Activity
 import android.app.Application
-import android.content.Context
-import android.content.ContextWrapper
-import android.hardware.biometrics.BiometricManager.Authenticators.BIOMETRIC_STRONG
-import android.hardware.biometrics.BiometricManager.Authenticators.DEVICE_CREDENTIAL
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -48,8 +27,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.timekeepingapp.ui.theme.TimeKeepingAppTheme
 import kotlinx.coroutines.delay
-import java.util.concurrent.Executor
-import kotlin.collections.emptyList
 
 class MainActivity : AppCompatActivity() {
     private lateinit var biometricPrompt: BiometricPrompt
@@ -94,14 +71,11 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         setContent {
-            println("Current Activity Context: ${LocalContext.current}")
-            val listProfileTime = mutableListOf<ProfileTimeViewModel>()
-
             val viewTimerList: TimerListViewModel by viewModels()
             val viewStopwatchList: StopwatchListViewModel by viewModels()
             val viewIntervalList: IntervalListViewModel by viewModels()
             val viewGroupList: GroupListViewModel by viewModels()
-            //val viewProfileTime: ProfileTimeViewModel by viewModels()
+
             TimeKeepingAppTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     ScreenDisplay(
@@ -110,7 +84,6 @@ class MainActivity : AppCompatActivity() {
                         viewStopwatchList,
                         viewIntervalList,
                         viewGroupList,
-                        listProfileTime,
                     )
                 }
             }
@@ -133,17 +106,17 @@ fun ScreenDisplay(modifier: Modifier,
                   viewStopwatchList: StopwatchListViewModel,
                   viewIntervalList: IntervalListViewModel,
                   viewGroupList: GroupListViewModel,
-                  listProfileTime: MutableList<ProfileTimeViewModel>
 ) {
-    MyApp(viewTimerList, viewStopwatchList, viewIntervalList, viewGroupList, listProfileTime)
+    MyApp(viewTimerList, viewStopwatchList, viewIntervalList, viewGroupList)
 }
-// Fingerprint Scanner when deleting a profile (to fulfil the course requirement of using a phone sensor)
+
 @Composable
 fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListViewModel,
           viewIntervalList: IntervalListViewModel, viewGroupList: GroupListViewModel,
-          listProfileTime: MutableList<ProfileTimeViewModel>,
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
+    val application = context.applicationContext as Application
 
     // Stopwatch LaunchedEffect(s)
     val stopwatches by viewStopwatchList.stopwatchList.collectAsState()
@@ -189,8 +162,7 @@ fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListVie
             GroupScreen(
                 {navController.popBackStack()},
                 {id -> navController.navigate("profilescreen/$id")},
-                viewGroupList,
-                listProfileTime
+                viewGroupList
             )
         }
         composable("personalscreen") {
@@ -207,14 +179,15 @@ fun MyApp(viewTimerList: TimerListViewModel, viewStopwatchList: StopwatchListVie
             backStackEntry ->
             val profileId = backStackEntry.arguments!!.getInt("id")
 
-            val viewProfileTime = listProfileTime.filter { profileId == it.vmId }[0]
+            val viewProfileTime: ProfileTimeViewModel = viewModel(
+                factory = ProfileTimeViewModelFactory(application, profileId)
+            )
 
             ProfileScreen(
                 profileId,
                 {navController.popBackStack()},
                 viewGroupList,
-                viewProfileTime,
-                listProfileTime
+                viewProfileTime
             )
         }
     }
